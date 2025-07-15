@@ -1,0 +1,14 @@
+seller && admin can edit property listings
+admin ka route lock krna hai
+add calendar in add property date
+add seller name or nuyer name + phone numbers
+create seller profiles
+
+name and phone number of sellers not gettiong stored in db
+// changees
+
+change the filter card on listing page
+add line below navbar
+change each listing according to the input property form
+
+featured button ->avanish

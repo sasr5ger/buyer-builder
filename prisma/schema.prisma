@@ -1,0 +1,129 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["mongodb"]
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+
+model User {
+  id       String @id @map("_id")
+  clerkId String   @unique
+  email   String?
+  role    String   @default("buyer") // buyer | seller | admin
+  calendlyLink   String?  // ✅ Add this line
+  name    String?
+  image   String?
+  city    String?
+  address String?
+  paid    Boolean  @default(false)
+
+  // Shared fields
+  phone       String?
+  location    String?
+  bio         String?
+  landline    String?
+
+  // Seller-specific
+  company     String?
+  website     String?
+  about       String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  properties Property[]
+  favorites Favorite[] @relation("UserFavorites")
+}
+
+model Property {
+  // id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  title           String
+  houseNo         String?
+  bedrooms        String?
+  bathroom        Int?
+  balconies       String?
+  carpetArea      String?
+  builtupArea     String?
+  superBuiltupArea   String?
+  ownershipStatus    String?
+  availabilityStatus String?
+  price           Float?
+  bhk             String?
+  possessionDate  String?
+  amenities       String[]
+  description     String?
+  city            String?
+  state           String?
+  locality        String?
+  latitude        Float?   // ✅ NEW
+  longitude       Float?   // ✅ NEW
+  sampleFlatVideo String?
+  localityVideo   String?
+  status          String   @default("pending")  // values: "pending", "approved", "rejected"
+  sellerId        String?
+  userId          String?
+  imageUrls       String[] @default([]) // NEW: array of image URLs
+  seller          User?    @relation(fields: [sellerId], references: [clerkId])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime? @updatedAt
+  appointments    Appointment[]
+  featured        Boolean  @default(false) // ✅ Add this
+  paymentStatus   String @default("unpaid")
+  favorites       Favorite[] // <-- Add this line for the relation
+  @@index([sellerId])
+  @@index([createdAt])
+
+}
+
+
+
+model Appointment {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  buyerId     String?
+  sellerId    String?
+  propertyId  String   @db.ObjectId
+  date        DateTime
+  type        String   // "site" or "video"
+  status      String   @default("pending") // pending | confirmed | rejected
+
+  property    Property @relation(fields: [propertyId], references: [id])
+}
+
+model ListingAccess {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @unique
+  hasAccess   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model Payment {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String
+  amount    Int
+  status    String
+  createdAt DateTime @default(now())
+}
+model Favorite {
+  id         String   @id @default(uuid()) @map("_id")
+  userId     String
+  propertyId String   @db.ObjectId
+  createdAt  DateTime @default(now())
+
+  user     User     @relation("UserFavorites", fields: [userId], references: [clerkId])
+  property Property @relation(fields: [propertyId], references: [id])
+
+  @@unique([userId, propertyId]) // Prevent duplicate saves
+}
+
+model CallRequest {
+  id        String   @id @default(cuid()) @map("_id")
+  buyerId   String
+  sellerId  String
+  roomUrl   String?
+  status    String   @default("pending") // pending | accepted | rejected
+  createdAt DateTime @default(now())
+}
